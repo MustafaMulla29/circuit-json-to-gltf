@@ -7,7 +7,6 @@ import * as fs from "node:fs"
 import * as path from "node:path"
 
 test("usb-c-flashlight-pcb-snapshot", async () => {
-  // Load the USB-C flashlight circuit using proper path resolution
   const usbcFlashlightPath = path.join(
     __dirname,
     "../../site/assets/usb-c-flashlight.json",
