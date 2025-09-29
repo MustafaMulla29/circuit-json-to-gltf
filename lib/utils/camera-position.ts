@@ -32,14 +32,18 @@ export function getBestCameraPosition(circuitJson: CircuitJson): {
   const maxDimension = Math.max(width, height)
   const baseDistance = maxDimension * 0.8
 
-    // Position camera for isometric/oblique view - similar to the reference image
+  // Position camera for isometric/oblique view - similar to the reference image
   // This creates a view where you can see the top and the side/depth of the PCB
-  const camX = Math.round(baseDistance * 0.7 * 100) / 100  // Round to 2 decimal places
+  const camX = Math.round(baseDistance * 0.7 * 100) / 100 // Round to 2 decimal places
   const camY = Math.round(baseDistance * 1.2 * 100) / 100
   const camZ = Math.round(baseDistance * 0.8 * 100) / 100
 
   return {
     camPos: [camX, camY, camZ] as const,
-    lookAt: [Math.round(center.x * 100) / 100, Math.round(center.y * 100) / 100, 0] as const,
+    lookAt: [
+      Math.round(center.x * 100) / 100,
+      Math.round(center.y * 100) / 100,
+      0,
+    ] as const,
   }
 }
