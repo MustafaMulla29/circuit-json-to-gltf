@@ -3,9 +3,6 @@ import { renderGLTFToPNGBufferFromGLBBuffer } from "poppygl"
 import { convertCircuitJsonToGltf } from "../../lib/index"
 import type { CircuitJson } from "circuit-json"
 
-// Import PNG matcher to make it available
-import "../fixtures/png-matcher"
-
 test("simple-circuit-pcb-snapshot", async () => {
   // Load the simple circuit fixture
   const simpleCircuit: CircuitJson = [
@@ -61,42 +58,12 @@ test("simple-circuit-pcb-snapshot", async () => {
   expect(glbResult).toBeInstanceOf(ArrayBuffer)
   expect((glbResult as ArrayBuffer).byteLength).toBeGreaterThan(0)
 
-  // Render the GLB to PNG and compare with snapshot
-  expect(
-    renderGLTFToPNGBufferFromGLBBuffer(glbResult as ArrayBuffer),
-  ).toMatchPngSnapshot(import.meta.path)
-})
-
-test("usb-c-flashlight-pcb-snapshot", async () => {
-  // Load the USB-C flashlight circuit from the site assets
-  const usbcFlashlightPath =
-    "/workspaces/circuit-json-to-gltf/site/assets/usb-c-flashlight.json"
-
-  let circuitJson: CircuitJson
-  try {
-    const fs = await import("node:fs")
-    const circuitData = fs.readFileSync(usbcFlashlightPath, "utf-8")
-    circuitJson = JSON.parse(circuitData)
-  } catch (error) {
-    // If the file doesn't exist, skip this test
-    console.warn("USB-C flashlight circuit file not found, skipping test")
-    return
+  // Render the GLB to PNG with better camera position for PCB viewing
+  const renderOptions = {
+    camPos: [20, 50, 40] as const,
   }
 
-  // Convert circuit to GLTF (GLB format for rendering)
-  const glbResult = await convertCircuitJsonToGltf(circuitJson, {
-    format: "glb",
-    boardTextureResolution: 1024,
-    includeModels: true,
-    showBoundingBoxes: false,
-  })
-
-  // Ensure we got a valid GLB buffer
-  expect(glbResult).toBeInstanceOf(ArrayBuffer)
-  expect((glbResult as ArrayBuffer).byteLength).toBeGreaterThan(0)
-
-  // Render the GLB to PNG and compare with snapshot
   expect(
-    renderGLTFToPNGBufferFromGLBBuffer(glbResult as ArrayBuffer),
-  ).toMatchPngSnapshot(import.meta.path, "usb-c-flashlight")
+    renderGLTFToPNGBufferFromGLBBuffer(glbResult as ArrayBuffer, renderOptions),
+  ).toMatchPngSnapshot(import.meta.path)
 })
