@@ -1,23 +1,20 @@
 import { test, expect } from "bun:test"
 import { renderGLTFToPNGBufferFromGLBBuffer } from "poppygl"
 import { convertCircuitJsonToGltf } from "../../lib/index"
+import { getBestCameraPosition } from "../../lib/utils/camera-position"
 import type { CircuitJson } from "circuit-json"
+import * as fs from "node:fs"
+import * as path from "node:path"
 
 test("usb-c-flashlight-pcb-snapshot", async () => {
-  // Load the USB-C flashlight circuit from the site assets
-  const usbcFlashlightPath =
-    "/workspaces/circuit-json-to-gltf/site/assets/usb-c-flashlight.json"
+  // Load the USB-C flashlight circuit using proper path resolution
+  const usbcFlashlightPath = path.join(
+    __dirname,
+    "../../site/assets/usb-c-flashlight.json",
+  )
 
-  let circuitJson: CircuitJson
-  try {
-    const fs = await import("node:fs")
-    const circuitData = fs.readFileSync(usbcFlashlightPath, "utf-8")
-    circuitJson = JSON.parse(circuitData)
-  } catch (error) {
-    // If the file doesn't exist, skip this test
-    console.warn("USB-C flashlight circuit file not found, skipping test")
-    return
-  }
+  const circuitData = fs.readFileSync(usbcFlashlightPath, "utf-8")
+  const circuitJson: CircuitJson = JSON.parse(circuitData)
 
   // Convert circuit to GLTF (GLB format for rendering)
   const glbResult = await convertCircuitJsonToGltf(circuitJson, {
@@ -31,12 +28,10 @@ test("usb-c-flashlight-pcb-snapshot", async () => {
   expect(glbResult).toBeInstanceOf(ArrayBuffer)
   expect((glbResult as ArrayBuffer).byteLength).toBeGreaterThan(0)
 
-  // Render the GLB to PNG with better camera position for PCB viewing
-  const renderOptions = {
-    camPos: [25, 25, 20] as const,
-  }
+  // Render the GLB to PNG with camera position derived from circuit dimensions
+  const cameraOptions = getBestCameraPosition(circuitJson)
 
   expect(
-    renderGLTFToPNGBufferFromGLBBuffer(glbResult as ArrayBuffer, renderOptions),
+    renderGLTFToPNGBufferFromGLBBuffer(glbResult as ArrayBuffer, cameraOptions),
   ).toMatchPngSnapshot(import.meta.path)
 })

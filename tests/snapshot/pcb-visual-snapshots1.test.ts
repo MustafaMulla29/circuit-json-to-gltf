@@ -1,6 +1,7 @@
 import { test, expect } from "bun:test"
 import { renderGLTFToPNGBufferFromGLBBuffer } from "poppygl"
 import { convertCircuitJsonToGltf } from "../../lib/index"
+import { getBestCameraPosition } from "../../lib/utils/camera-position"
 import type { CircuitJson } from "circuit-json"
 
 test("simple-circuit-pcb-snapshot", async () => {
@@ -58,12 +59,10 @@ test("simple-circuit-pcb-snapshot", async () => {
   expect(glbResult).toBeInstanceOf(ArrayBuffer)
   expect((glbResult as ArrayBuffer).byteLength).toBeGreaterThan(0)
 
-  // Render the GLB to PNG with better camera position for PCB viewing
-  const renderOptions = {
-    camPos: [20, 50, 40] as const,
-  }
+  // Render the GLB to PNG with camera position derived from circuit dimensions
+  const cameraOptions = getBestCameraPosition(simpleCircuit)
 
   expect(
-    renderGLTFToPNGBufferFromGLBBuffer(glbResult as ArrayBuffer, renderOptions),
+    renderGLTFToPNGBufferFromGLBBuffer(glbResult as ArrayBuffer, cameraOptions),
   ).toMatchPngSnapshot(import.meta.path)
 })
