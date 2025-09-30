@@ -6,13 +6,10 @@ import type { CircuitJson } from "circuit-json"
 import * as fs from "node:fs"
 import * as path from "node:path"
 
-test("usb-c-flashlight-pcb-snapshot", async () => {
-  const usbcFlashlightPath = path.join(
-    __dirname,
-    "../../site/assets/usb-c-flashlight.json",
-  )
+test("esp32-board-pcb-snapshot", async () => {
+  const esp32BoardPath = path.join(__dirname, "../fixtures/esp32-board.json")
 
-  const circuitData = fs.readFileSync(usbcFlashlightPath, "utf-8")
+  const circuitData = fs.readFileSync(esp32BoardPath, "utf-8")
   const circuitJson: CircuitJson = JSON.parse(circuitData)
 
   // Convert circuit to GLTF (GLB format for rendering)
@@ -32,5 +29,5 @@ test("usb-c-flashlight-pcb-snapshot", async () => {
 
   expect(
     renderGLTFToPNGBufferFromGLBBuffer(glbResult as ArrayBuffer, cameraOptions),
-  ).toMatchPngSnapshot(import.meta.path, "usb-c-flashlight")
+  ).toMatchPngSnapshot(import.meta.path, "esp32-board")
 })
