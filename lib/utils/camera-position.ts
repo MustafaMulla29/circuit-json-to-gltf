@@ -30,16 +30,16 @@ export function getBestCameraPosition(circuitJson: CircuitJson): {
 
   // Calculate camera distance based on board size
   const maxDimension = Math.max(width, height)
-  
+
   // Use completely deterministic integer values to ensure identical rendering
   // across all environments (local, CI, different Node versions, etc.)
   const baseDistance = Math.round(maxDimension * 0.8)
-  
+
   // Force integer camera positions for absolute consistency
   const camX = Math.round(baseDistance * 0.7)
   const camY = Math.round(baseDistance * 1.2)
   const camZ = Math.round(baseDistance * 0.8)
-  
+
   // Also round the lookAt position for consistency
   const lookAtX = Math.round(center.x)
   const lookAtY = Math.round(center.y)

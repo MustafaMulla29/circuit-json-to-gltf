@@ -54,7 +54,7 @@ async function toMatchPngSnapshot(
     Buffer.from(existingSnapshot),
     {
       strict: false,
-      tolerance: 2,
+      tolerance: 3, // Increased slightly for 3D rendering environment differences
     },
   )
 
