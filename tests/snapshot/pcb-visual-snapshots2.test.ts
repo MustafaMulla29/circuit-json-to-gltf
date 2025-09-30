@@ -30,6 +30,15 @@ test("usb-c-flashlight-pcb-snapshot", async () => {
   // Render the GLB to PNG with camera position derived from circuit dimensions
   const cameraOptions = getBestCameraPosition(circuitJson)
 
+  // Debug logging to understand differences between local and CI
+  console.log("🔍 Debug info:")
+  console.log(
+    "   Circuit JSON board count:",
+    circuitJson.filter((item) => item.type === "pcb_board").length,
+  )
+  console.log("   Camera options:", cameraOptions)
+  console.log("   GLB buffer size:", (glbResult as ArrayBuffer).byteLength)
+
   expect(
     renderGLTFToPNGBufferFromGLBBuffer(glbResult as ArrayBuffer, cameraOptions),
   ).toMatchPngSnapshot(import.meta.path, "usb-c-flashlight")

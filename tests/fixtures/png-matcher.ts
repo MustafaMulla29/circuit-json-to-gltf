@@ -96,7 +96,17 @@ async function toMatchPngSnapshot(
   console.log(`   Received: ${received.length} bytes`)
   console.log(`   Expected: ${existingSnapshot.length} bytes`)
   console.log(`   Diff result:`, result)
+  console.log(
+    `   Diff bounds area: ${(result.diffBounds.right - result.diffBounds.left) * (result.diffBounds.bottom - result.diffBounds.top)} pixels`,
+  )
   console.log(`   Diff saved: ${diffPath}`)
+
+  // Let's also check if it's a timestamp or environment-specific rendering issue
+  console.log(`   Environment info:`)
+  console.log(`     Node version: ${process.version}`)
+  console.log(`     Platform: ${process.platform}`)
+  console.log(`     Arch: ${process.arch}`)
+  console.log(`     CI: ${process.env.CI || "false"}`)
 
   return {
     message: () => `PNG snapshot does not match. Diff saved at ${diffPath}`,
