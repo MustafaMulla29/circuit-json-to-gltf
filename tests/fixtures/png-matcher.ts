@@ -88,6 +88,12 @@ async function toMatchPngSnapshot(
     highlightColor: "#ff00ff",
   })
 
+  console.log(`📸 Snapshot mismatch details:`)
+  console.log(`   Expected: ${filePath}`)
+  console.log(`   Received: ${received.length} bytes`)
+  console.log(`   Expected: ${existingSnapshot.length} bytes`)
+  console.log(`   Diff saved: ${diffPath}`)
+
   return {
     message: () => `PNG snapshot does not match. Diff saved at ${diffPath}`,
     pass: false,
