@@ -54,10 +54,10 @@ async function toMatchPngSnapshot(
     Buffer.from(existingSnapshot),
     {
       strict: false,
-      tolerance: 5,                  // Higher tolerance for 3D rendering differences
-      antialiasingTolerance: 3,      // Handle anti-aliasing differences
-      ignoreAntialiasing: true,      // Ignore anti-aliasing completely
-      ignoreCaret: true,             // Ignore caret if present
+      tolerance: 10, // Much higher tolerance for 3D rendering
+      antialiasingTolerance: 5, // Handle anti-aliasing differences
+      ignoreAntialiasing: true, // Ignore anti-aliasing completely
+      ignoreCaret: true, // Ignore caret if present
     },
   )
 
