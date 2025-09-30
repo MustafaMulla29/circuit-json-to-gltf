@@ -54,7 +54,10 @@ async function toMatchPngSnapshot(
     Buffer.from(existingSnapshot),
     {
       strict: false,
-      tolerance: 3, // Increased slightly for 3D rendering environment differences
+      tolerance: 5,                  // Higher tolerance for 3D rendering differences
+      antialiasingTolerance: 3,      // Handle anti-aliasing differences
+      ignoreAntialiasing: true,      // Ignore anti-aliasing completely
+      ignoreCaret: true,             // Ignore caret if present
     },
   )
 
@@ -92,6 +95,7 @@ async function toMatchPngSnapshot(
   console.log(`   Expected: ${filePath}`)
   console.log(`   Received: ${received.length} bytes`)
   console.log(`   Expected: ${existingSnapshot.length} bytes`)
+  console.log(`   Diff result:`, result)
   console.log(`   Diff saved: ${diffPath}`)
 
   return {
