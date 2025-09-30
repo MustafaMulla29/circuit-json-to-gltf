@@ -119,25 +119,6 @@ async function toMatchPngSnapshot(
       highlightColor: "#ff00ff",
     })
 
-    console.log(`📸 Snapshot mismatch details:`)
-    console.log(`   Expected: ${filePath}`)
-    console.log(`   Received: ${received.length} bytes`)
-    console.log(`   Expected: ${existingSnapshot.length} bytes`)
-    console.log(
-      `   Image dimensions: ${width}x${height} (${totalPixels} total pixels)`,
-    )
-    console.log(
-      `   Diff area: ${diffArea} pixels (${diffPercentage.toFixed(3)}%)`,
-    )
-    console.log(`   Diff bounds:`, result.diffBounds)
-    console.log(`   Diff saved: ${diffPath}`)
-    console.log(`   Threshold: ${ACCEPTABLE_DIFF_PERCENTAGE}%`)
-    console.log(`   Environment info:`)
-    console.log(`     Node version: ${process.version}`)
-    console.log(`     Platform: ${process.platform}`)
-    console.log(`     Arch: ${process.arch}`)
-    console.log(`     CI: ${process.env.CI || "false"}`)
-
     return {
       message: () =>
         `PNG snapshot differs by ${diffPercentage.toFixed(3)}% (threshold: ${ACCEPTABLE_DIFF_PERCENTAGE}%). Diff saved at ${diffPath}`,
