@@ -2,21 +2,23 @@ import { test, expect } from "bun:test"
 import { renderGLTFToPNGBufferFromGLBBuffer } from "poppygl"
 import { convertCircuitJsonToGltf } from "../../lib/index"
 import { getBestCameraPosition } from "../../lib/utils/camera-position"
+import type { CircuitJson } from "circuit-json"
 import * as fs from "node:fs"
 import * as path from "node:path"
-import type { CircuitJson } from "circuit-json"
 
-test("simple-circuit-pcb-snapshot", async () => {
-  // Load the simple circuit fixture
-  const simpleCircuit = path.join(__dirname, "../fixtures/simple-circuit.json")
+test("usb-c-flashlight-pcb-snapshot", async () => {
+  const usbcFlashlightPath = path.join(
+    __dirname,
+    "../../site/assets/usb-c-flashlight.json",
+  )
 
-  const circuitData = fs.readFileSync(simpleCircuit, "utf-8")
+  const circuitData = fs.readFileSync(usbcFlashlightPath, "utf-8")
   const circuitJson: CircuitJson = JSON.parse(circuitData)
 
   // Convert circuit to GLTF (GLB format for rendering)
   const glbResult = await convertCircuitJsonToGltf(circuitJson, {
     format: "glb",
-    boardTextureResolution: 512,
+    boardTextureResolution: 1024,
     includeModels: true,
     showBoundingBoxes: false,
   })
@@ -30,5 +32,5 @@ test("simple-circuit-pcb-snapshot", async () => {
 
   expect(
     renderGLTFToPNGBufferFromGLBBuffer(glbResult as ArrayBuffer, cameraOptions),
-  ).toMatchPngSnapshot(import.meta.path)
+  ).toMatchPngSnapshot(import.meta.path, "usb-c-flashlight")
 })
