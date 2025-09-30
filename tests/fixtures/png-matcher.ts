@@ -53,6 +53,7 @@ async function toMatchPngSnapshot(
     Buffer.from(received),
     Buffer.from(existingSnapshot),
     {
+      strict: false,
       tolerance: 5,
       antialiasingTolerance: 4,
       ignoreCaret: true,
