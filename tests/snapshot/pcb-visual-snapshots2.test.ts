@@ -32,5 +32,5 @@ test("usb-c-flashlight-pcb-snapshot", async () => {
 
   expect(
     renderGLTFToPNGBufferFromGLBBuffer(glbResult as ArrayBuffer, cameraOptions),
-  ).toMatchPngSnapshot(import.meta.path)
+  ).toMatchPngSnapshot(import.meta.path, "usb-c-flashlight")
 })
