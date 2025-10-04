@@ -122,7 +122,13 @@ export async function convertCircuitJsonTo3D(
 
     // Determine position
     const center = cad.position
-      ? { x: cad.position.x, y: cad.position.z, z: cad.position.y }
+      ? {
+          x: cad.position.x,
+          y: isBottomLayer
+            ? -Math.abs(cad.position.z) // Ensure negative Y for bottom layer
+            : cad.position.z,
+          z: cad.position.y,
+        }
       : {
           x: pcbComponent?.center.x ?? 0,
           y: isBottomLayer
