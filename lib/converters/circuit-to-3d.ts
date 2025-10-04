@@ -110,6 +110,9 @@ export async function convertCircuitJsonTo3D(
     // Get the associated PCB component
     const pcbComponent = db.pcb_component.get(cad.pcb_component_id)
 
+    // Check if component is on bottom layer
+    const isBottomLayer = pcbComponent?.layer === "bottom"
+
     // Determine size
     const size = cad.size ?? {
       x: pcbComponent?.width ?? 2,
@@ -122,7 +125,9 @@ export async function convertCircuitJsonTo3D(
       ? { x: cad.position.x, y: cad.position.z, z: cad.position.y }
       : {
           x: pcbComponent?.center.x ?? 0,
-          y: boardThickness / 2 + size.y / 2,
+          y: isBottomLayer
+            ? -(boardThickness / 2 + size.y / 2)
+            : boardThickness / 2 + size.y / 2,
           z: pcbComponent?.center.y ?? 0,
         }
 
@@ -149,12 +154,31 @@ export async function convertCircuitJsonTo3D(
       if (model_glb_url || model_gltf_url) {
         // Remap rotation: circuit Z -> model Y, circuit Y -> model Z
         box.rotation = convertRotationFromCadRotation({
-          x: cad.rotation.x,
+          x: isBottomLayer ? cad.rotation.x + 180 : cad.rotation.x,
           y: cad.rotation.z, // Circuit Z rotation becomes model Y rotation
           z: cad.rotation.y, // Circuit Y rotation becomes model Z rotation
         })
       } else {
-        box.rotation = convertRotationFromCadRotation(cad.rotation)
+        box.rotation = convertRotationFromCadRotation({
+          x: isBottomLayer ? cad.rotation.x + 180 : cad.rotation.x,
+          y: cad.rotation.y,
+          z: cad.rotation.z,
+        })
+      }
+    } else if (isBottomLayer) {
+      // If no rotation specified but component is on bottom, flip it
+      if (model_glb_url || model_gltf_url) {
+        box.rotation = convertRotationFromCadRotation({
+          x: 180,
+          y: 0,
+          z: 0,
+        })
+      } else {
+        box.rotation = convertRotationFromCadRotation({
+          x: 180,
+          y: 0,
+          z: 0,
+        })
       }
     }
 
@@ -196,10 +220,15 @@ export async function convertCircuitJsonTo3D(
       defaultComponentHeight,
     )
 
+    // Check if component is on bottom layer
+    const isBottomLayer = component.layer === "bottom"
+
     boxes.push({
       center: {
         x: component.center.x,
-        y: boardThickness / 2 + compHeight / 2,
+        y: isBottomLayer
+          ? -(boardThickness / 2 + compHeight / 2)
+          : boardThickness / 2 + compHeight / 2,
         z: component.center.y,
       },
       size: {
