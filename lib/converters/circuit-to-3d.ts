@@ -156,11 +156,7 @@ export async function convertCircuitJsonTo3D(
       : {
           x: pcbComponent?.center.x ?? 0,
           y: isBottomLayer
-            ? -(
-                effectiveBoardThickness / 2 +
-                size.y / 2 +
-                effectiveBoardThickness / 2
-              )
+            ? -(effectiveBoardThickness + size.y / 2)
             : effectiveBoardThickness / 2 + size.y / 2,
           z: pcbComponent?.center.y ?? 0,
         }
