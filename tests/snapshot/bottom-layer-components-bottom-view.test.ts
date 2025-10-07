@@ -17,7 +17,7 @@ test("bottom-layer-components-bottom-view", async () => {
   // Convert circuit to GLTF (GLB format for rendering)
   const glbResult = await convertCircuitJsonToGltf(circuitJson, {
     format: "glb",
-    boardTextureResolution: 512,
+    boardTextureResolution: 0,
     includeModels: true,
     showBoundingBoxes: false,
   })
