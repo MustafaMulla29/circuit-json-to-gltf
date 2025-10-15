@@ -16,6 +16,7 @@ Converts circuit JSON to 3D GLTF files. Used for exporting circuits as 3D models
 - High-quality board texture rendering using circuit-to-svg and resvg
 - Automatic component positioning and generic 3D representations
 - Customizable camera, lighting, and material settings
+- **Board positioning support**: Use `pcbX` and `pcbY` properties on `pcb_board` to offset board position (see [docs/board-center-positioning.md](docs/board-center-positioning.md))
 
 ## Installation
 

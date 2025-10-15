@@ -58,6 +58,10 @@ export async function convertCircuitJsonTo3D(
   const pcbBoard = db.pcb_board?.list?.()[0]
   const effectiveBoardThickness = pcbBoard?.thickness ?? boardThickness
 
+  // Calculate board offset from pcbX and pcbY properties
+  const boardOffsetX = (pcbBoard as any)?.pcbX ?? 0
+  const boardOffsetY = (pcbBoard as any)?.pcbY ?? 0
+
   if (pcbBoard) {
     // Create the main PCB board box
     const pcbHoles = (db.pcb_hole?.list?.() ?? []) as PcbHole[]
@@ -75,9 +79,9 @@ export async function convertCircuitJsonTo3D(
 
     const boardBox: Box3D = {
       center: {
-        x: pcbBoard.center.x,
+        x: pcbBoard.center.x + boardOffsetX,
         y: 0,
-        z: pcbBoard.center.y,
+        z: pcbBoard.center.y + boardOffsetY,
       },
       size: {
         x: Number.isFinite(meshWidth) ? meshWidth : pcbBoard.width,
@@ -163,18 +167,18 @@ export async function convertCircuitJsonTo3D(
     // Determine position
     const center = cad.position
       ? {
-          x: cad.position.x,
+          x: cad.position.x + boardOffsetX,
           y: isBottomLayer
             ? -Math.abs(cad.position.z) // Ensure negative Y for bottom layer
             : cad.position.z,
-          z: cad.position.y,
+          z: cad.position.y + boardOffsetY,
         }
       : {
-          x: pcbComponent?.center.x ?? 0,
+          x: (pcbComponent?.center.x ?? 0) + boardOffsetX,
           y: isBottomLayer
             ? -(effectiveBoardThickness + size.y / 2)
             : effectiveBoardThickness / 2 + size.y / 2,
-          z: pcbComponent?.center.y ?? 0,
+          z: (pcbComponent?.center.y ?? 0) + boardOffsetY,
         }
 
     const meshType = model_stl_url
@@ -292,11 +296,11 @@ export async function convertCircuitJsonTo3D(
 
     boxes.push({
       center: {
-        x: component.center.x,
+        x: component.center.x + boardOffsetX,
         y: isBottomLayer
           ? -(effectiveBoardThickness + compHeight / 2)
           : effectiveBoardThickness / 2 + compHeight / 2,
-        z: component.center.y,
+        z: component.center.y + boardOffsetY,
       },
       size: {
         x: component.width,
@@ -320,14 +324,14 @@ export async function convertCircuitJsonTo3D(
 
     camera = {
       position: {
-        x: pcbBoard.center.x + cameraDistance * 0.5,
+        x: pcbBoard.center.x + boardOffsetX + cameraDistance * 0.5,
         y: cameraDistance * 0.7,
-        z: pcbBoard.center.y + cameraDistance * 0.5,
+        z: pcbBoard.center.y + boardOffsetY + cameraDistance * 0.5,
       },
       target: {
-        x: pcbBoard.center.x,
+        x: pcbBoard.center.x + boardOffsetX,
         y: 0,
-        z: pcbBoard.center.y,
+        z: pcbBoard.center.y + boardOffsetY,
       },
       up: { x: 0, y: 1, z: 0 },
       fov: 50,

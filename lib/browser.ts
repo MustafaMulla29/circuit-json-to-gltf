@@ -50,12 +50,16 @@ export async function convertCircuitJsonTo3D(
     throw new Error("No pcb_board found in circuit JSON")
   }
 
+  // Calculate board offset from pcbX and pcbY properties
+  const boardOffsetX = (pcbBoard as any)?.pcbX ?? 0
+  const boardOffsetY = (pcbBoard as any)?.pcbY ?? 0
+
   // Create the main PCB board box (without textures in browser)
   boxes.push({
     center: {
-      x: pcbBoard.center.x,
+      x: pcbBoard.center.x + boardOffsetX,
       y: 0,
-      z: pcbBoard.center.y,
+      z: pcbBoard.center.y + boardOffsetY,
     },
     size: {
       x: pcbBoard.width,
@@ -77,9 +81,9 @@ export async function convertCircuitJsonTo3D(
 
     boxes.push({
       center: {
-        x: component.center.x,
+        x: component.center.x + boardOffsetX,
         y: boardThickness / 2 + compHeight / 2,
-        z: component.center.y,
+        z: component.center.y + boardOffsetY,
       },
       size: {
         x: component.width,
@@ -100,14 +104,14 @@ export async function convertCircuitJsonTo3D(
 
   const camera = {
     position: {
-      x: pcbBoard.center.x + cameraDistance * 0.5,
+      x: pcbBoard.center.x + boardOffsetX + cameraDistance * 0.5,
       y: cameraDistance * 0.7,
-      z: pcbBoard.center.y + cameraDistance * 0.5,
+      z: pcbBoard.center.y + boardOffsetY + cameraDistance * 0.5,
     },
     target: {
-      x: pcbBoard.center.x,
+      x: pcbBoard.center.x + boardOffsetX,
       y: 0,
-      z: pcbBoard.center.y,
+      z: pcbBoard.center.y + boardOffsetY,
     },
     up: { x: 0, y: 1, z: 0 },
     fov: 50,
