@@ -339,8 +339,6 @@ export async function convertCircuitJsonTo3D(
       box.mesh = scaleMesh(box.mesh, modelScaleFactor)
     }
 
-
-
     // Only set color if mesh loading failed (fallback to simple box)
     if (!box.mesh) {
       box.color = componentColor
