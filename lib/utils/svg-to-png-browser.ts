@@ -1,56 +1,99 @@
 import type { ResvgRenderOptions } from "@resvg/resvg-js"
-import { Resvg, initWasm } from "@resvg/resvg-wasm"
 import tscircuitFont from "../assets/tscircuit-font"
 
+// Don't use static imports for WASM modules - they fail when externalized
+let Resvg: any
+let initWasm: any
 let wasmInitialized = false
 
-async function ensureWasmInitialized() {
-  if (!wasmInitialized) {
-    try {
-      // Check if we're in a Node.js/Bun environment
-      if (typeof process !== "undefined" && process.versions?.node) {
-        // Dynamically import Node.js modules only in Node.js environment
-        const { readFileSync } = await import("fs")
-        const { dirname, join } = await import("path")
+async function loadWasmModule() {
+  if (Resvg && initWasm) return true
 
-        // Try to resolve the WASM file path relative to the package
+  try {
+    // Try to dynamically import the module
+    const wasmModule = await import("@resvg/resvg-wasm")
+    Resvg = wasmModule.Resvg
+    initWasm = wasmModule.initWasm
+
+    if (!initWasm) {
+      throw new Error("initWasm function not found in @resvg/resvg-wasm module")
+    }
+
+    return true
+  } catch (error) {
+    console.error("Failed to load @resvg/resvg-wasm module:", error)
+    throw new Error(
+      `WASM module could not be loaded. GLB export requires @resvg/resvg-wasm but it failed to load. ` +
+        `This may happen if the module was externalized by the bundler. ` +
+        `Error: ${error instanceof Error ? error.message : String(error)}`,
+    )
+  }
+}
+
+async function ensureWasmInitialized() {
+  if (wasmInitialized) return
+
+  // First, load the module
+  await loadWasmModule()
+
+  try {
+    // Check if we're in a Node.js/Bun environment
+    if (typeof process !== "undefined" && process.versions?.node) {
+      // Dynamically import Node.js modules only in Node.js environment
+      const { readFileSync } = await import("fs")
+      const { dirname, join } = await import("path")
+
+      // Try to resolve the WASM file path relative to the package
+      try {
+        const packagePath = require.resolve("@resvg/resvg-wasm/package.json")
+        const wasmPath = join(dirname(packagePath), "index_bg.wasm")
+        const wasmBuffer = readFileSync(wasmPath)
+        await initWasm(wasmBuffer)
+      } catch (pathError) {
+        // Fallback: try relative to the module's main file
         try {
-          const packagePath = require.resolve("@resvg/resvg-wasm/package.json")
-          const wasmPath = join(dirname(packagePath), "index_bg.wasm")
+          const modulePath = require.resolve("@resvg/resvg-wasm")
+          const wasmPath = join(dirname(modulePath), "index_bg.wasm")
           const wasmBuffer = readFileSync(wasmPath)
           await initWasm(wasmBuffer)
-        } catch (pathError) {
-          // Fallback: try relative to the module's main file
-          try {
-            const modulePath = require.resolve("@resvg/resvg-wasm")
-            const wasmPath = join(dirname(modulePath), "index_bg.wasm")
-            const wasmBuffer = readFileSync(wasmPath)
-            await initWasm(wasmBuffer)
-          } catch (fallbackError) {
-            throw new Error(
-              `Failed to locate WASM file: ${(pathError as Error).message}, ${(fallbackError as Error).message}`,
-            )
-          }
-        }
-      } else {
-        // Browser environment - try to load from URL
-        try {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore - Vite will handle this import
-          const wasmUrl = await import("@resvg/resvg-wasm/index_bg.wasm?url")
-          await initWasm(fetch(wasmUrl.default))
-        } catch {
-          // Fallback to CDN
-          await initWasm(
-            fetch("https://unpkg.com/@resvg/resvg-wasm@2.6.2/index_bg.wasm"),
+        } catch (fallbackError) {
+          throw new Error(
+            `Failed to locate WASM file: ${(pathError as Error).message}, ${(fallbackError as Error).message}`,
           )
         }
       }
-      wasmInitialized = true
-    } catch (error) {
-      console.error("Failed to initialize WASM:", error)
-      throw error
+    } else {
+      // Browser environment - load from CDN
+      try {
+        // Try primary CDN
+        const response = await fetch(
+          "https://unpkg.com/@resvg/resvg-wasm@2.6.2/index_bg.wasm",
+        )
+        if (!response.ok) {
+          throw new Error(
+            `CDN fetch failed: ${response.status} ${response.statusText}`,
+          )
+        }
+        await initWasm(response)
+      } catch (cdnError) {
+        // Fallback to alternative CDN
+        console.warn("Primary CDN failed, trying fallback:", cdnError)
+        const response = await fetch(
+          "https://cdn.jsdelivr.net/npm/@resvg/resvg-wasm@2.6.2/index_bg.wasm",
+        )
+        if (!response.ok) {
+          throw new Error(`Fallback CDN also failed: ${response.status}`)
+        }
+        await initWasm(response)
+      }
     }
+    wasmInitialized = true
+  } catch (error) {
+    console.error("Failed to initialize WASM:", error)
+    throw new Error(
+      `WASM initialization failed: ${error instanceof Error ? error.message : String(error)}. ` +
+        `GLB export requires WASM support but initialization failed.`,
+    )
   }
 }
 
