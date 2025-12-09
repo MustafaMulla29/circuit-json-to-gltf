@@ -16,17 +16,42 @@ async function loadWasmModule() {
     initWasm = wasmModule.initWasm
 
     if (!initWasm) {
-      throw new Error("initWasm function not found in @resvg/resvg-wasm module")
+      throw new Error("initWasm function not found")
     }
 
     return true
-  } catch (error) {
-    console.error("Failed to load @resvg/resvg-wasm module:", error)
-    throw new Error(
-      `WASM module could not be loaded. GLB export requires @resvg/resvg-wasm but it failed to load. ` +
-        `This may happen if the module was externalized by the bundler. ` +
-        `Error: ${error instanceof Error ? error.message : String(error)}`,
+  } catch (importError) {
+    console.warn(
+      "Could not import @resvg/resvg-wasm via dynamic import, loading from CDN",
     )
+
+    // Load from CDN as a fallback
+    if (typeof window !== "undefined") {
+      // Load the WASM module from CDN
+      await new Promise((resolve, reject) => {
+        const script = document.createElement("script")
+        script.src = "https://unpkg.com/@resvg/resvg-wasm@2.6.2/index.js"
+        script.onload = resolve
+        script.onerror = reject
+        document.head.appendChild(script)
+      })
+
+      // After loading, the module should be available globally or via import
+      if ((window as any).resvgWasm) {
+        Resvg = (window as any).resvgWasm.Resvg
+        initWasm = (window as any).resvgWasm.initWasm
+      }
+
+      if (!Resvg || !initWasm) {
+        throw new Error(
+          "WASM module loaded from CDN but Resvg/initWasm not found",
+        )
+      }
+
+      return true
+    }
+
+    throw new Error(`Cannot load @resvg/resvg-wasm: ${importError}`)
   }
 }
 
