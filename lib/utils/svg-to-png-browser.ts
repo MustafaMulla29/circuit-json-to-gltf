@@ -1,8 +1,18 @@
 import type { ResvgRenderOptions } from "@resvg/resvg-js"
-import { Resvg, initWasm } from "@resvg/resvg-wasm"
 import tscircuitFont from "../assets/tscircuit-font"
 
 let wasmInitialized = false
+let ResvgClass: typeof import("@resvg/resvg-wasm").Resvg | null = null
+
+const CDN_BASE = "https://esm.sh/@resvg/resvg-wasm@2.6.2"
+const WASM_CDN_URL = "https://unpkg.com/@resvg/resvg-wasm@2.6.2/index_bg.wasm"
+
+async function loadResvgFromCDN() {
+  // Use Function constructor to bypass both TS and bundler
+  const dynamicImport = new Function("url", "return import(url)")
+  const module = await dynamicImport(CDN_BASE)
+  return module
+}
 
 async function ensureWasmInitialized() {
   if (!wasmInitialized) {
@@ -12,6 +22,18 @@ async function ensureWasmInitialized() {
         // Dynamically import Node.js modules only in Node.js environment
         const { readFileSync } = await import("fs")
         const { dirname, join } = await import("path")
+
+        // Try to import the module first
+        let resvgModule: typeof import("@resvg/resvg-wasm")
+        try {
+          resvgModule = await import("@resvg/resvg-wasm")
+        } catch {
+          // If bundled import fails, try CDN
+          resvgModule = await loadResvgFromCDN()
+        }
+
+        const { Resvg, initWasm } = resvgModule
+        ResvgClass = Resvg
 
         // Try to resolve the WASM file path relative to the package
         try {
@@ -33,17 +55,33 @@ async function ensureWasmInitialized() {
           }
         }
       } else {
-        // Browser environment - try to load from URL
+        // Browser environment - try dynamic import first, then fall back to CDN
+        let resvgModule: typeof import("@resvg/resvg-wasm")
+
+        try {
+          // Try the bundled import first (works when not externalized)
+          resvgModule = await import("@resvg/resvg-wasm")
+          // Verify the module was actually loaded (not just an empty externalized stub)
+          if (!resvgModule.initWasm || !resvgModule.Resvg) {
+            throw new Error("Module externalized, falling back to CDN")
+          }
+        } catch {
+          // Fallback to CDN when module is externalized or import fails
+          resvgModule = await loadResvgFromCDN()
+        }
+
+        const { Resvg, initWasm } = resvgModule
+        ResvgClass = Resvg
+
+        // Initialize WASM from CDN
         try {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore - Vite will handle this import
           const wasmUrl = await import("@resvg/resvg-wasm/index_bg.wasm?url")
           await initWasm(fetch(wasmUrl.default))
         } catch {
-          // Fallback to CDN
-          await initWasm(
-            fetch("https://unpkg.com/@resvg/resvg-wasm@2.6.2/index_bg.wasm"),
-          )
+          // Fallback to CDN for WASM binary
+          await initWasm(fetch(WASM_CDN_URL))
         }
       }
       wasmInitialized = true
@@ -109,7 +147,10 @@ export async function svgToPng(
         : undefined,
   }
 
-  const resvg = new Resvg(svgString, opts)
+  if (!ResvgClass) {
+    throw new Error("Resvg not initialized. Call ensureWasmInitialized first.")
+  }
+  const resvg = new ResvgClass(svgString, opts)
   const pngData = resvg.render()
   const pngBuffer = pngData.asPng()
 
