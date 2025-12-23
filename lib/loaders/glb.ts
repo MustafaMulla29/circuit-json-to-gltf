@@ -23,6 +23,11 @@ export async function loadGLB(
   }
 
   const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch GLB: ${response.status} ${response.statusText}`,
+    )
+  }
   const buffer = await response.arrayBuffer()
   const mesh = parseGLB(buffer, transform)
   glbCache.set(cacheKey, mesh)
@@ -233,26 +238,12 @@ function extractTrianglesFromGLTF(
       }
 
       // Get indices (if present)
-      let indices: Uint16Array | Uint32Array | undefined
+      // Note: getAccessorData returns Float32Array with correct values
+      // We use it directly since the values are already correct integers stored as floats
+      let indices: Float32Array | undefined
       if (primitive.indices !== undefined) {
         const indexAccessor = gltf.accessors[primitive.indices]
-        const indexData = getAccessorData(
-          indexAccessor,
-          gltf.bufferViews,
-          binaryBuffer,
-        )
-        indices =
-          indexAccessor.componentType === 5123
-            ? new Uint16Array(
-                indexData.buffer,
-                indexData.byteOffset,
-                indexData.length,
-              )
-            : new Uint32Array(
-                indexData.buffer,
-                indexData.byteOffset,
-                indexData.length,
-              )
+        indices = getAccessorData(indexAccessor, gltf.bufferViews, binaryBuffer)
       }
 
       // Build triangles

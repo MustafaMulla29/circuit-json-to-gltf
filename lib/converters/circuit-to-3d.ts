@@ -326,7 +326,11 @@ export async function convertCircuitJsonTo3D(
     } else if (model_obj_url) {
       box.mesh = await loadOBJ(model_obj_url, defaultTransform)
     } else if (model_glb_url) {
-      box.mesh = await loadGLB(model_glb_url, defaultTransform)
+      try {
+        box.mesh = await loadGLB(model_glb_url, defaultTransform)
+      } catch (err) {
+        console.error(`Failed to load GLB from ${model_glb_url}:`, err)
+      }
     } else if (model_gltf_url) {
       box.mesh = await loadGLTF(model_gltf_url, defaultTransform)
     } else if (hasFootprinterModel && cad.footprinter_string) {

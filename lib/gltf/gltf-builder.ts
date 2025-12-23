@@ -77,7 +77,8 @@ export class GLTFBuilder {
     })
 
     // Process boxes
-    for (const box of scene3D.boxes) {
+    for (let i = 0; i < scene3D.boxes.length; i++) {
+      const box = scene3D.boxes[i]!
       await this.addBox(box, defaultMaterialIndex)
     }
   }
@@ -205,9 +206,9 @@ export class GLTFBuilder {
     const primitives: any[] = []
 
     for (const { meshData, materialIndex } of meshDataArray) {
-      const transformedMeshData = convertMeshToGLTFOrientation(
-        transformMesh(meshData, box.center, box.rotation),
-      )
+      // Apply translation and rotation, then convert to GLTF orientation
+      const translatedMesh = transformMesh(meshData, box.center, box.rotation)
+      const transformedMeshData = convertMeshToGLTFOrientation(translatedMesh)
 
       const positionAccessorIndex = this.addAccessor(
         transformedMeshData.positions,
