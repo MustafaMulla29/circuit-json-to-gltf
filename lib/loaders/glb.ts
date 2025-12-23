@@ -306,7 +306,10 @@ function extractTrianglesFromGLTF(
             // Apply rotation transforms to normal (no translation)
             for (const transform of transforms) {
               if (transform.rotation) {
-                n = applyQuaternion(n, transform.rotation as [number, number, number, number])
+                n = applyQuaternion(
+                  n,
+                  transform.rotation as [number, number, number, number],
+                )
               }
             }
             normal = n
@@ -435,7 +438,10 @@ function extractTrianglesFromGLTF(
             // Apply rotation transforms to normal
             for (const transform of transforms) {
               if (transform.rotation) {
-                n = applyQuaternion(n, transform.rotation as [number, number, number, number])
+                n = applyQuaternion(
+                  n,
+                  transform.rotation as [number, number, number, number],
+                )
               }
             }
             normal = n

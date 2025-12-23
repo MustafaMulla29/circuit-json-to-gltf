@@ -70,9 +70,7 @@ export function applyNodeTransform(p: Point3, node: NodeTransform): Point3 {
  * Build a map of mesh index to accumulated node transforms.
  * Traverses the GLTF scene graph to collect transforms for each mesh.
  */
-export function buildMeshTransforms(
-  gltf: any,
-): Map<number, NodeTransform[]> {
+export function buildMeshTransforms(gltf: any): Map<number, NodeTransform[]> {
   const meshTransforms = new Map<number, NodeTransform[]>()
 
   if (!gltf.nodes) return meshTransforms
